@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
-const userRouter = require("./routes/userRoutes");
+const userRouter = require("./routes/userRoutes.js");
+const taskRouter = require("./routes/taskroutes.js");
 const { connectDB } = require("./db/db.js");
 require("dotenv").config();
 connectDB();
@@ -10,6 +11,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api", userRouter);
+app.use("/api", taskRouter);
 
 app.listen(8000, () => {
   console.log("server running at 8000");

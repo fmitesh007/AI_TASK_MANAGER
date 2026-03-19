@@ -5,8 +5,7 @@ const bcrypt = require("bcrypt");
 const registerUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const existingUser = await userSchema.findOne({ email });
-    if (existingUser) {
+    if (await userSchema.findOne({ email })) {
       return res.json({ message: "User with this email already exists" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
