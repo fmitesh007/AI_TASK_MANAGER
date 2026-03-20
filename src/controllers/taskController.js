@@ -1,4 +1,5 @@
 const taskSchema = require("../models/taskModels");
+const model = require("../ai/ai.service.js");
 
 const createTask = async (req, res) => {
   try {
@@ -66,33 +67,6 @@ const displayTaskById = async (req, res) => {
   }
 };
 
-// const updateTask = async (req, res) => {
-//   try {
-//     const { title, description, status, priority, dueDate, userID } = req.body;
-//     const istask = await taskSchema.findById(req.params.id);
-//     if (!istask) {
-//       return res.json({
-//         message: "No task for this ID",
-//       });
-//     }
-//     const task = new taskSchema({
-//       title,
-//       description,
-//       status,
-//       priority,
-//       dueDate,
-//       userID,
-//     });
-//     await task.save();
-//     return res.json({
-//       message: "task updated",
-//       task,
-//     });
-//   } catch (err) {
-//     console.log(err);
-//   }
-// };
-
 const updateTask = async (req, res) => {
   try {
     const task = await taskSchema.findByIdAndUpdate(req.params.id, req.body);
@@ -127,37 +101,20 @@ const deleteTask = async (req, res) => {
   }
 };
 
-// const generateSubtasks = aync(req, res)=> {
-//   try {
+const summarize = async (req, res) => {
+  try {
+    const tasks = await taskSchema.find({ userID: req.user });
+    const genModel = model();
+    const result = await genModel.generateContent(
+      `you are a task summerizing AI your main work is to summerize all the task listed and give a simpified summery of them in 5 lines tasks :${tasks}`,
+    );
 
-//   } catch (err) {
-//     console.log(err);
-//   }
-// }
-
-// const rewrite = aync(req, res)=> {
-//   try {
-
-//   } catch (err) {
-//     console.log(err);
-//   }
-// }
-
-// const estimate = aync(req, res)=> {
-//   try {
-
-//   } catch (err) {
-//     console.log(err);
-//   }
-// }
-
-// const summarize = aync(req, res)=> {
-//   try {
-
-//   } catch (err) {
-//     console.log(err);
-//   }
-// }
+    console.log(tasks);
+    return res.json({ message: result.response.text() });
+  } catch (err) {
+    console.log(err);
+  }
+};
 
 module.exports = {
   createTask,
@@ -169,5 +126,5 @@ module.exports = {
   // generateSubtasks,
   // rewrite,
   // estimate,
-  // summarize,
+  summarize,
 };

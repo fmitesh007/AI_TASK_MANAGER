@@ -8,7 +8,7 @@ const {
   // generateSubtasks,
   // rewrite,
   // estimate,
-  // summarize,
+  summarize,
 } = require("../controllers/taskController.js");
 const express = require("express");
 const auth = require("../middleware/auth.js");
@@ -25,6 +25,6 @@ taskRouter.delete("/user/tasks/:id", auth, deleteTask);
 // taskRouter.post("/tasks/:id/generate-subtasks", generateSubtasks);
 // taskRouter.post("/tasks/:id/rewrite", rewrite);
 // taskRouter.post("/tasks/:id/estimate", estimate);
-// taskRouter.get("/tasks/summary", summarize);
+taskRouter.get("/tasks/summary", auth, summarize);
 
 module.exports = taskRouter;
