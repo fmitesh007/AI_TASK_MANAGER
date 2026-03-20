@@ -14,9 +14,11 @@ const registerUser = async (req, res) => {
       email,
       password: hashedPassword,
     });
-
+    const token = jwt.sign({ id: user._id }, process.env.JWTSECERET);
+    res.cookie("token", token);
     return res.json({
       message: "User created",
+      token,
       user,
     });
   } catch (err) {
@@ -34,7 +36,8 @@ const loginUser = async (req, res) => {
     if (!(await bcrypt.compare(password, user.password))) {
       return res.json({ message: "Wrong password" });
     }
-    const token = jwt.sign({ email: user.email }, "shhhhh");
+    const token = jwt.sign({ id: user._id }, process.env.JWTSECERET);
+    res.cookie("token", token);
     return res.json({
       message: "User signed in",
       token,

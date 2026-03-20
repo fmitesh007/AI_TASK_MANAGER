@@ -2,14 +2,14 @@ const taskSchema = require("../models/taskModels");
 
 const createTask = async (req, res) => {
   try {
-    const { title, description, status, priority, dueDate, userID } = req.body;
+    const { title, description, status, priority, dueDate } = req.body;
     const task = await taskSchema.create({
       title,
       description,
       status,
       priority,
       dueDate,
-      userID,
+      userID: req.user,
     });
     return res.json({
       message: "task created",
@@ -29,6 +29,23 @@ const displayAllTasks = async (req, res) => {
     });
   } catch (err) {
     console.log(err);
+  }
+};
+
+const displayUserTasks = async (req, res) => {
+  try {
+    const tasks = await taskSchema.find({ userID: req.user });
+    if (!tasks) {
+      return res.json({
+        message: "no tasks found for ths user",
+      });
+    }
+    return res.json({
+      message: "listing task by user ID",
+      tasks,
+    });
+  } catch (err) {
+    return console.log(err);
   }
 };
 
@@ -84,9 +101,10 @@ const updateTask = async (req, res) => {
         message: "Task not found",
       });
     }
+    const updatedTask = await taskSchema.findById(req.params.id);
     return res.json({
       message: "Task updated",
-      task,
+      updatedTask,
     });
   } catch (err) {
     console.log(err);
@@ -109,10 +127,47 @@ const deleteTask = async (req, res) => {
   }
 };
 
+// const generateSubtasks = aync(req, res)=> {
+//   try {
+
+//   } catch (err) {
+//     console.log(err);
+//   }
+// }
+
+// const rewrite = aync(req, res)=> {
+//   try {
+
+//   } catch (err) {
+//     console.log(err);
+//   }
+// }
+
+// const estimate = aync(req, res)=> {
+//   try {
+
+//   } catch (err) {
+//     console.log(err);
+//   }
+// }
+
+// const summarize = aync(req, res)=> {
+//   try {
+
+//   } catch (err) {
+//     console.log(err);
+//   }
+// }
+
 module.exports = {
   createTask,
   displayAllTasks,
+  displayUserTasks,
   displayTaskById,
   updateTask,
   deleteTask,
+  // generateSubtasks,
+  // rewrite,
+  // estimate,
+  // summarize,
 };
