@@ -5,9 +5,9 @@ const {
   displayTaskById,
   updateTask,
   deleteTask,
-  // generateSubtasks,
-  // rewrite,
-  // estimate,
+  generateSubtasks,
+  rewrite,
+  estimate,
   summarize,
 } = require("../controllers/taskController.js");
 const express = require("express");
@@ -29,9 +29,9 @@ taskRouter.put(
 );
 taskRouter.delete("/user/tasks/:id", auth, deleteTask);
 
-// taskRouter.post("/tasks/:id/generate-subtasks", generateSubtasks);
-// taskRouter.post("/tasks/:id/rewrite", rewrite);
-// taskRouter.post("/tasks/:id/estimate", estimate);
+taskRouter.get("/tasks/:id/generate-subtasks", generateSubtasks);
+taskRouter.get("/tasks/:id/rewrite", rewrite);
+taskRouter.get("/tasks/:id/estimate", estimate);
 taskRouter.get("/tasks/summary", auth, summarize);
 
 module.exports = taskRouter;
