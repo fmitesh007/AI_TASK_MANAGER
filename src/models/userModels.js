@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { required } = require("zod/mini");
+// const { z } = require("zod");
 
 const userSchema = new mongoose.Schema(
   {

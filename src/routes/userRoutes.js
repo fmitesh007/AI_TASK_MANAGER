@@ -1,8 +1,10 @@
 const { registerUser, loginUser } = require("../controllers/userController.js");
 const express = require("express");
+const validate = require("../middleware/validate.js");
+const { userSchemaZod } = require("../utils/validators.js");
 const userRouter = express.Router();
 
-userRouter.post("/auth/register", registerUser);
-userRouter.post("/auth/login", loginUser);
+userRouter.post("/auth/register", validate(userSchemaZod), registerUser);
+userRouter.post("/auth/login", validate(userSchemaZod), loginUser);
 
 module.exports = userRouter;

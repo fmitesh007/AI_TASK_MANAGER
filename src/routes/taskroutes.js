@@ -12,14 +12,21 @@ const {
 } = require("../controllers/taskController.js");
 const express = require("express");
 const auth = require("../middleware/auth.js");
+const validate = require("../middleware/validate");
+const { taskSchemaZod } = require("../utils/validators");
 
 const taskRouter = express.Router();
 
-taskRouter.post("/user/tasks", auth, createTask);
+taskRouter.post("/user/tasks", auth, validate(taskSchemaZod), createTask);
 taskRouter.get("/alltasks", auth, displayAllTasks);
 taskRouter.get("/user/tasks", auth, displayUserTasks);
 taskRouter.get("/user/tasks/:id", auth, displayTaskById);
-taskRouter.put("/user/tasks/:id", auth, updateTask);
+taskRouter.put(
+  "/user/tasks/:id",
+  auth,
+  validate(taskSchemaZod.partial()),
+  updateTask,
+);
 taskRouter.delete("/user/tasks/:id", auth, deleteTask);
 
 // taskRouter.post("/tasks/:id/generate-subtasks", generateSubtasks);

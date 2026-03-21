@@ -105,9 +105,12 @@ const summarize = async (req, res) => {
   try {
     const tasks = await taskSchema.find({ userID: req.user });
     const genModel = model();
-    const result = await genModel.generateContent(
-      `you are a task summerizing AI your main work is to summerize all the task listed and give a simpified summery of them in 5 lines tasks :${tasks}`,
-    );
+    const sumUpPrompt = `You are a task summarization AI.
+      Your job is to analyze a list of tasks and generate a concise,
+      clear summary in exactly 5 lines. Focus on priority, deadlines, status,
+      and overall workload. Use simple language and highlight urgent or overdue items.
+      Do not add extra details or formatting tasks :${tasks}`;
+    const result = await genModel.generateContent(sumUpPrompt);
 
     console.log(tasks);
     return res.json({ message: result.response.text() });
