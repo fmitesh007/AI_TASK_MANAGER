@@ -29,9 +29,9 @@ taskRouter.put(
 );
 taskRouter.delete("/user/tasks/:id", auth, deleteTask);
 
-taskRouter.get("/tasks/:id/generate-subtasks", generateSubtasks);
-taskRouter.get("/tasks/:id/rewrite", rewrite);
-taskRouter.get("/tasks/:id/estimate", estimate);
+taskRouter.post("/tasks/:id/generate-subtasks", auth, generateSubtasks);
+taskRouter.post("/tasks/:id/rewrite", auth, rewrite);
+taskRouter.post("/tasks/:id/estimate", auth, estimate);
 taskRouter.get("/tasks/summary", auth, summarize);
 
 module.exports = taskRouter;
