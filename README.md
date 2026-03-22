@@ -1,76 +1,178 @@
-# AI Task Manager
+# 🤖 AI Task Manager
 
-## Introduction
-The AI Task Manager is a powerful tool designed to help users manage tasks efficiently using artificial intelligence. This application allows users to create, update, and manage tasks seamlessly, enhancing productivity.
+## 📋 Overview
 
-## Features
-- Create, read, update, and delete tasks
-- AI recommendations for task prioritization
-- User-friendly interface
-- Multi-user support
-- Detailed reporting
+AI Task Manager is a full-stack backend application designed to help users manage tasks efficiently with the power of AI. It provides robust task management features along with intelligent automation like generating subtasks, rewriting descriptions, and estimating task complexity.
 
-## Installation
-To set up the project locally, follow these steps:
+This project combines traditional CRUD operations with AI-powered enhancements to boost productivity and decision-making.
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/fmitesh007/AI_TASK_MANAGER.git
-   ```
-2. Change into the project directory:
-   ```
-   cd AI_TASK_MANAGER
-   ```
-3. Install dependencies:
-   ```
-   npm install
-   ```
+---
 
-## Usage
-To start the application, run:
+## ✨ Features
+
+### 🧩 Core Task Management
+- Create, update, delete, and retrieve tasks
+- Task prioritization (Low, Medium, High)
+- Task status tracking (TODO, IN_PROGRESS, DONE)
+- Multi-user support with authentication
+
+### 🤖 AI-Powered Capabilities
+- Generate subtasks automatically
+- Rewrite task descriptions intelligently
+- Estimate task complexity & completion time
+- Get a summary of all tasks
+
+### 🔐 Authentication & Security
+- JWT-based authentication
+- Password hashing with bcrypt
+- Input validation using Zod
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Node.js, Express.js |
+| Database | MongoDB (Mongoose) |
+| AI Integration | Google Generative AI (Gemini 2.5 Flash) |
+| Authentication | JWT |
+| Validation | Zod |
+| Security | Bcrypt |
+
+---
+
+## 🚀 Installation & Setup
+
+Follow these steps to run the project locally:
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/fmitesh007/AI_TASK_MANAGER.git
 ```
+
+### 2. Navigate to the project directory
+```bash
+cd AI_TASK_MANAGER
+```
+
+### 3. Install dependencies
+```bash
+npm install
+```
+
+### 4. Set up environment variables
+
+Create a `.env` file in the root directory and add:
+
+```env
+PORT=3000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_secret_key
+GEMINI_API_KEY=your_google_ai_key
+```
+
+### 5. Start the server
+```bash
 npm start
 ```
-Visit `http://localhost:3000` in your browser to access the application.
 
-## API Documentation
-### Endpoints
+### 6. Access the app
+```
+http://localhost:3000
+```
 
-#### 1. Create Task
-- **POST** `/api/tasks`
-- **Request Body**: 
-  ```json
-  {
-    "title": "Task Title",
-    "description": "Task Description",
-    "dueDate": "YYYY-MM-DD",
-    "priority": "high|medium|low"
-  }
-  ```
-  
-#### 2. Get All Tasks
-- **GET** `/api/tasks`
+---
 
-#### 3. Update Task
-- **PUT** `/api/tasks/:id`
-- **Request Body**:
-  ```json
-  {
-    "title": "Updated Task Title",
-    "description": "Updated Task Description",
-    "dueDate": "YYYY-MM-DD",
-    "priority": "high|medium|low"
-  }
-  ```
+## 📖 API Documentation
 
-#### 4. Delete Task
-- **DELETE** `/api/tasks/:id`
+### 🔐 Authentication Routes (`/api/auth`)
 
-## Contributing
-We welcome contributions! Please submit a pull request or open an issue to discuss improvements.
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/register` | Register a new user |
+| POST | `/api/auth/login` | Login user |
 
-## License
-This project is licensed under the MIT License.
+### 📝 Task Management Routes (`/api`)
 
-## Contact Information
-For any inquiries, please reach out to [fmitesh007](https://github.com/fmitesh007).
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/user/tasks` | Create a task |
+| GET | `/api/alltasks` | Get all tasks |
+| GET | `/api/user/tasks` | Get user tasks |
+| GET | `/api/user/tasks/:id` | Get task by ID |
+| PUT | `/api/user/tasks/:id` | Update task |
+| DELETE | `/api/user/tasks/:id` | Delete task |
+
+### 🤖 AI Features
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/tasks/:id/generate-subtasks` | Generate subtasks |
+| POST | `/api/tasks/:id/rewrite` | Rewrite task description |
+| POST | `/api/tasks/:id/estimate` | Estimate task complexity |
+| GET | `/api/tasks/summary` | Get tasks summary |
+
+---
+
+## 📦 Example Request Body
+
+### Create / Update Task
+```json
+{
+  "title": "Build API",
+  "description": "Create backend for task manager",
+  "dueDate": "2026-03-30",
+  "priority": "HIGH"
+}
+```
+
+---
+
+## 📁 Project Structure
+
+```
+AI_TASK_MANAGER/
+│── models/
+│── routes/
+│── controllers/
+│── middleware/
+│── utils/
+│── config/
+│── .env
+│── server.js
+│── package.json
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!
+
+1. Fork the repository
+2. Create your feature branch
+   ```bash
+   git checkout -b feature/new-feature
+   ```
+3. Commit your changes
+   ```bash
+   git commit -m "Add new feature"
+   ```
+4. Push to the branch
+   ```bash
+   git push origin feature/new-feature
+   ```
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**.
+
+---
+
+## 📬 Contact
+
+- **GitHub:** [https://github.com/fmitesh007](https://github.com/fmitesh007)
