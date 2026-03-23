@@ -1,8 +1,15 @@
 const mongoose = require("mongoose");
-// const { z } = require("zod");
 
 const userSchema = new mongoose.Schema(
   {
+    avatar: {
+      data: Buffer,
+      contentType: String,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
     email: {
       type: String,
       required: true,
