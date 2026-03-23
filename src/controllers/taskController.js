@@ -106,16 +106,31 @@ const summarize = async (req, res) => {
     const tasks = await taskSchema.find({ userID: req.user });
     const genModel = model();
     const sumUpPrompt = `You are a task summarization AI.
-      Your job is to analyze a list of tasks and generate a concise,
-      clear summary in exactly 5 lines. Focus on priority, deadlines, status,
-      and overall workload. Use simple language and highlight urgent or overdue items.
-      Do not add extra details or formatting tasks :${tasks}`;
-    const result = await genModel.generateContent(sumUpPrompt);
+          Your job is to analyze a list of tasks and generate a concise,
+          clear summary in exactly 5 lines. Focus on priority, deadlines, status,
+          and overall workload. Use simple language and highlight urgent or overdue items.
+          Do not add extra details or formatting tasks: ${JSON.stringify(tasks)} example output :
+          {
+            "summary": "You have 3 tasks in total, all pending.
+            All tasks are low priority. Workload includes proposal, PRs, and AI demo."
+          }
+          `;
+    const result = await genModel.generateContent({
+      contents: [{ parts: [{ text: sumUpPrompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+      },
+    });
+    const text = result.response.text().trim();
+    const cleanedText = text.replace(/^```json\n?|```$/g, "").trim();
+    const parsed = JSON.parse(cleanedText);
 
-    console.log(tasks);
-    return res.json({ message: result.response.text() });
+    const summaryString = parsed.summary.replace(/\n/g, " ").trim();
+
+    return res.json({ message: summaryString });
   } catch (err) {
     console.log(err);
+    return res.status(500).json({ error: "Failed to summarize" });
   }
 };
 
@@ -123,42 +138,81 @@ const generateSubtasks = async (req, res) => {
   try {
     const task = await taskSchema.findById(req.params.id);
     if (!task) {
-      return res.json({
-        message: "No task for this ID",
-      });
+      return res.json({ message: "No task for this ID" });
     }
     const genModel = model();
-    const subTaskPrompt = `You are a Task Decomposition Tool. Given a single JSON task object as input, output only JSON with a top-level key "subtasks" mapping to an array of 4–8 subtask objects that break the task into clear, ordered, actionable steps. Follow these rules:
-    Use fields title, description, status, priority, dueDate, createdAt, userID to tailor subtasks.
-    Each subtask object must include:
-    "title": concise action (max 8 words).
-    "description": 1–2 sentences describing the action and expected deliverable.
-    "estimate_minutes": integer minutes to complete.
-    "dueDate": ISO 8601 datetime string in UTC if main task has dueDate; otherwise null. Distribute subtask dueDates so final ones finish on or before the main dueDate.
-    "priority": inherit main task priority unless a subtask needs higher urgency.
-    If status is not "TODO", add a leading subtask reflecting current state (e.g., "Continue work").
-    If description lacks detail, include an early "Clarify requirements" subtask (30–90 minutes).
-    Create subtasks covering planning, drafting, review, revision, and submission (or equivalents) with logical dependencies and no cycles.
-    Estimates: small tasks 15–60 minutes, larger 120–360 minutes.
-    Convert input dueDate (format DD/MM/YYYY) to ISO 8601 UTC datetimes; assume user's timezone is UTC.
-    Output must be minimal JSON only—no extra keys, comments, or explanatory text.
-    Keep language neutral and actionable. this is the task youll break down ${task}`;
-    const result = await genModel.generateContent(subTaskPrompt);
-    return res.json({ message: result.response.text() });
+    const subtaskSchema = {
+      type: "object",
+      properties: {
+        subtasks: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              description: { type: "string" },
+              estimate_minutes: { type: "integer" },
+              dueDate: { type: "string", format: "date-time", nullable: true },
+              priority: { type: "string" },
+              createdAt: { type: "string", format: "date-time" },
+              userID: { type: "string" },
+            },
+            required: ["title", "estimate_minutes", "priority", "userID"],
+          },
+        },
+      },
+      required: ["subtasks"],
+    };
+    const subTaskPrompt = `Return only JSON matching the schema. Break down this task into 4–8 subtasks: ${JSON.stringify(task)}`;
+    const result = await genModel.generateContent({
+      contents: [
+        {
+          parts: [
+            {
+              text: subTaskPrompt,
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: subtaskSchema,
+      },
+    });
+    const text = result.response.text().trim();
+    const cleanedText = text.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(cleanedText);
+    await taskSchema.findByIdAndUpdate(req.params.id, {
+      subtasks: parsed.subtasks,
+    });
+
+    return res.json({ message: parsed.subtasks });
   } catch (err) {
-    console.log(err);
+    console.error(err);
+    return res.status(500).json({ error: "Failed to generate subtasks" });
   }
 };
-
 const rewrite = async (req, res) => {
   try {
     const task = await taskSchema.findById(req.params.id);
     if (!task) {
-      return res.json({
-        message: "No task for this ID",
-      });
+      return res.json({ message: "No task for this ID" });
     }
     const genModel = model();
+    const responseSchema = {
+      type: "object",
+      properties: {
+        task: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            description: { type: "string" },
+          },
+          required: ["title", "description"],
+        },
+      },
+      required: ["task"],
+    };
     const rewritePrompt = `You are a Task Rewriting Tool. Given a single JSON task object as input, output only JSON with a top-level key "task" mapping to an improved, clearer, and tangentially better version of the original task. Follow these rules:
     Use fields title, description to rewrite and enhance the task. ignore other fields,
     Preserve the original intent but improve clarity, specificity, and actionability; add one or two useful tangential enhancements (e.g., success criteria, suggested deliverables, preferred format, or key stakeholders).
@@ -166,11 +220,25 @@ const rewrite = async (req, res) => {
     "title": concise, action-oriented (≤8 words).
     "description": 1–3 sentences that clarify scope, deliverables, and any assumptions.
     Do not add any keys beyond those listed.
-    Output must be valid JSON only—no extra text or commentary._ this is the input task: ${task}`;
-    const result = await genModel.generateContent(rewritePrompt);
-    return res.json({ message: result.response.text() });
+    Output must be valid JSON only—no extra text or commentary._ this is the input task: ${JSON.stringify(task)}`;
+    const result = await genModel.generateContent({
+      contents: [{ parts: [{ text: rewritePrompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema,
+      },
+    });
+    const text = result.response.text().trim();
+    const cleanedText = text.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(cleanedText);
+    const updatedTask = await taskSchema.findByIdAndUpdate(req.params.id, {
+      title: parsed.task.title,
+      description: parsed.task.description,
+    });
+    return res.json({ message: updatedTask });
   } catch (err) {
-    console.log(err);
+    console.error(err);
+    return res.status(500).json({ error: "Failed to rewrite and update task" });
   }
 };
 
@@ -178,32 +246,65 @@ const estimate = async (req, res) => {
   try {
     const task = await taskSchema.findById(req.params.id);
     if (!task) {
-      return res.json({
-        message: "No task for this ID",
-      });
+      return res.json({ message: "No task for this ID" });
     }
     const genModel = model();
-    const estimatePrompt = `You are a Task Complexity Analyzer. Given a single JSON task object as input, output only JSON with a top-level key
-      "analysis" mapping to an object that assesses complexity and provides time estimates. Follow these rules:
-    Use fields title, description, status, priority, dueDate, createdAt, userID to inform the analysis.
-    Provide these keys inside "analysis":
-    "complexity_level": one of "Very Low", "Low", "Medium", "High", "Very High".
-    "confidence": integer percentage (30–100) representing confidence in the assessment.
-    "estimated_total_minutes": integer total minutes to complete the task.
-    "breakdown": array of objects detailing major effort components; each object must include:
-    "minutes": integer minutes allocated.
-    "notes": 1–2 short sentences explaining scope of that component.
-    "critical_risks": array of short strings listing up to 5 risks that could increase time or block completion.
-    "assumptions": array of short strings listing up to 5 assumptions made to produce the estimate.
-    Estimates should be realistic and consistent: sum of "breakdown" minutes must equal "estimated_total_minutes".
-    If description lacks detail, include assumption items reflecting unknowns and allocate a "Clarification" component (30–90 minutes).
-    If status is not "TODO", adjust estimates to reflect remaining work (do not assume task is complete).
-    If dueDate exists, indicate in "assumptions" whether the deadline is feasible given the estimate.
-    Keep output minimal and strictly valid JSON—no extra keys, comments, or text.this is the input task: ${task}`;
-    const result = await genModel.generateContent(estimatePrompt);
-    return res.json({ message: result.response.text() });
+    const responseSchema = {
+      type: "object",
+      properties: {
+        analysis: {
+          type: "object",
+          properties: {
+            complexity_level: {
+              type: "string",
+              enum: ["Very Low", "Low", "Medium", "High", "Very High"],
+            },
+            confidence: { type: "integer", minimum: 30, maximum: 100 },
+            estimated_total_minutes: { type: "integer" },
+            breakdown: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  minutes: { type: "integer" },
+                  notes: { type: "string" },
+                },
+                required: ["minutes", "notes"],
+              },
+            },
+            critical_risks: { type: "array", items: { type: "string" } },
+            assumptions: { type: "array", items: { type: "string" } },
+          },
+          required: [
+            "complexity_level",
+            "confidence",
+            "estimated_total_minutes",
+            "breakdown",
+            "critical_risks",
+            "assumptions",
+          ],
+        },
+      },
+      required: ["analysis"],
+    };
+    const estimatePrompt = `Analyze this task and return JSON with "analysis": ${JSON.stringify(task)}`;
+    const result = await genModel.generateContent({
+      contents: [{ parts: [{ text: estimatePrompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema,
+      },
+    });
+    const text = result.response.text().trim();
+    const cleanedText = text.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(cleanedText);
+    await taskSchema.findByIdAndUpdate(req.params.id, {
+      estimate: parsed.analysis,
+    });
+    return res.json({ message: parsed.analysis });
   } catch (err) {
-    console.log(err);
+    console.error(err);
+    return res.status(500).json({ error: "Failed to estimate and save task" });
   }
 };
 
