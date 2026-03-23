@@ -4,6 +4,7 @@ const {
   logoutUser,
   getProfile,
   updateProfile,
+  resetPassword,
 } = require("../controllers/userController.js");
 const express = require("express");
 const validate = require("../middleware/validate.js");
@@ -24,5 +25,7 @@ userRouter.put(
   upload.single("avatar"),
   updateProfile,
 );
+
+userRouter.post("/resetpassword", resetPassword);
 
 module.exports = userRouter;
