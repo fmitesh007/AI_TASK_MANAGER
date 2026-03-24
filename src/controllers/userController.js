@@ -60,7 +60,7 @@ const logoutUser = async (req, res) => {
 };
 const getProfile = async (req, res) => {
   try {
-    const user = await userSchema.findById(req.user.id);
+    const user = await userSchema.findById(req.user);
     if (!user) return res.json({ message: "User not found" });
     res.json({ user });
   } catch (err) {

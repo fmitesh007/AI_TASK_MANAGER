@@ -5,13 +5,15 @@ const userRouter = require("./src/routes/userRoutes.js");
 const taskRouter = require("./src/routes/taskRoutes.js");
 const { connectDB } = require("./src/db/db.js");
 const cookieParser = require("cookie-parser");
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 3000;
 require("dotenv").config();
 connectDB();
 
 const allowedOrigins = [
   "http://localhost:8080",
+  "http://127.0.0.1:8080",
   "http://localhost:3000",
+  "http://127.0.0.1:3000",
   "https://ai-task-manager-7ax0.onrender.com",
 ];
 
