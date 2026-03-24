@@ -26,6 +26,6 @@ userRouter.put(
   updateProfile,
 );
 
-userRouter.post("/resetpassword", resetPassword);
+userRouter.post("/auth/resetpassword", resetPassword);
 
 module.exports = userRouter;

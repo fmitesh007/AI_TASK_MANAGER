@@ -1,6 +1,6 @@
 const { z } = require("zod");
 const userSchemaZod = z.object({
-  name: z.string().min(3, "Name is required"),
+  name: z.string().optional(),
   email: z.string().email("Invalid email"),
   password: z.string().min(6, "Password must be at least 6 chars"),
 });

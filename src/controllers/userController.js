@@ -86,7 +86,7 @@ const updateProfile = async (req, res) => {
     const updatedUser = await userSchema.findByIdAndUpdate(
       user._id,
       { $set: updates },
-      { new: true },
+      { new: true, runValidators: true },
     );
     const token = jwt.sign({ id: updatedUser._id }, process.env.JWTSECRET);
     res.cookie("token", token);
@@ -99,20 +99,23 @@ const updateProfile = async (req, res) => {
     console.log(err);
   }
 };
-
 const resetPassword = async (req, res) => {
   const { email } = req.body;
-
   try {
     const user = await userSchema.findOne({ email });
     if (!user) return res.json({ message: "User not found" });
     const otp = generateOTP();
-    user.resetOtp = otp;
-    user.otpExpiry = Date.now() + 600000;
-    await user.save();
+    await userSchema.updateOne(
+      { email },
+      {
+        resetOtp: otp,
+        otpExpiry: Date.now() + 600000,
+      },
+    );
     await sendOTP(email, otp);
     res.json({ message: "OTP sent to email" });
   } catch (err) {
+    console.log(err);
     res.json({ message: "Failed to send OTP" });
   }
 };
