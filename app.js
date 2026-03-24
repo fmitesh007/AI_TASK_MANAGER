@@ -1,8 +1,8 @@
 const express = require("express");
 const app = express();
-const userRouter = require("./routes/userRoutes.js");
-const taskRouter = require("./routes/taskRoutes.js");
-const { connectDB } = require("./db/db.js");
+const userRouter = require("./src/routes/userRoutes.js");
+const taskRouter = require("./src/routes/taskRoutes.js");
+const { connectDB } = require("./src/db/db.js");
 const cookieParser = require("cookie-parser");
 const PORT = process.env.PORT || 8000;
 require("dotenv").config();
