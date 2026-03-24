@@ -72,23 +72,25 @@ const updateProfile = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    const user = await userSchema.findOne({ email });
-    if (!user) {
-      return res.json({ message: "user doesnt exist" });
-    }
-    const updates = { name, email };
+    const updates = {};
+    if (name) updates.name = name;
+    if (email) updates.email = email;
     if (password) {
       updates.password = await bcrypt.hash(password, 10);
     }
     if (req.file) {
       updates.avatar = `/uploads/${req.file.filename}`;
     }
+
     const updatedUser = await userSchema.findByIdAndUpdate(
-      user._id,
+      req.user,
       { $set: updates },
       { new: true, runValidators: true },
     );
-    const token = jwt.sign({ id: updatedUser._id }, process.env.JWTSECRET);
+    if (!updatedUser) {
+      return res.json({ message: "User not found" });
+    }
+    const token = jwt.sign({ id: updatedUser._id }, process.env.JWTSECERET);
     res.cookie("token", token);
     return res.json({
       message: "User updated",
