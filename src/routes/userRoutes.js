@@ -5,6 +5,7 @@ const {
   getProfile,
   updateProfile,
   resetPassword,
+  uploadAvatar,
 } = require("../controllers/userController.js");
 const express = require("express");
 const validate = require("../middleware/validate.js");
@@ -18,11 +19,19 @@ userRouter.post("/auth/login", validate(userSchemaZod), loginUser);
 userRouter.post("/auth/logout", logoutUser);
 userRouter.get("/auth/profile", auth, getProfile);
 
+// Avatar-only upload — no body validation needed, just auth + upload middleware
+userRouter.post(
+  "/auth/avatar",
+  auth,
+  upload.single("avatar"),
+  uploadAvatar,
+);
+
+// Profile update — text fields only, validated
 userRouter.put(
   "/auth/profile/update",
   auth,
   validate(updateProfileSchemaZod),
-  upload.single("avatar"),
   updateProfile,
 );
 

@@ -101,6 +101,26 @@ const updateProfile = async (req, res) => {
     console.log(err);
   }
 };
+const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    const avatarUrl = `/uploads/${req.file.filename}`;
+    const updatedUser = await userSchema.findByIdAndUpdate(
+      req.user,
+      { $set: { avatar: avatarUrl } },
+      { new: true },
+    );
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.json({ message: "Avatar updated", user: updatedUser });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Upload failed" });
+  }
+};
 const resetPassword = async (req, res) => {
   const { email } = req.body;
   try {
@@ -128,5 +148,6 @@ module.exports = {
   logoutUser,
   getProfile,
   updateProfile,
+  uploadAvatar,
   resetPassword,
 };
