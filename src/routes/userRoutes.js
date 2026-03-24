@@ -10,7 +10,7 @@ const express = require("express");
 const validate = require("../middleware/validate.js");
 const auth = require("../middleware/auth.js");
 const upload = require("../middleware/upload.js");
-const { userSchemaZod } = require("../utils/validators.js");
+const { userSchemaZod, updateProfileSchemaZod } = require("../utils/validators.js");
 const userRouter = express.Router();
 
 userRouter.post("/auth/register", validate(userSchemaZod), registerUser);
@@ -21,7 +21,7 @@ userRouter.get("/auth/profile", auth, getProfile);
 userRouter.put(
   "/auth/profile/update",
   auth,
-  validate(userSchemaZod),
+  validate(updateProfileSchemaZod),
   upload.single("avatar"),
   updateProfile,
 );

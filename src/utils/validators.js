@@ -1,8 +1,18 @@
 const { z } = require("zod");
-const userSchemaZod = z.object({
+
+const baseUserSchema = z.object({
   name: z.string().optional(),
   email: z.string().email("Invalid email"),
   password: z.string().min(6, "Password must be at least 6 chars"),
+});
+
+const userSchemaZod = baseUserSchema;
+
+// Partial schema for profile updates — all fields optional
+const updateProfileSchemaZod = z.object({
+  name: z.string().optional(),
+  email: z.string().email("Invalid email").or(z.literal("")),
+  password: z.string().min(6, "Password must be at least 6 chars").optional(),
 });
 
 const taskSchemaZod = z.object({
@@ -16,5 +26,6 @@ const taskSchemaZod = z.object({
 
 module.exports = {
   userSchemaZod,
+  updateProfileSchemaZod,
   taskSchemaZod,
 };
